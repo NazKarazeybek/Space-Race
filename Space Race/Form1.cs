@@ -64,7 +64,7 @@ namespace Space_Race
                 do
                 {
                     yPosition = rand.Next(0, ClientSize.Height - size);
-                } while (Math.Abs(yPosition - (ClientSize.Height - 5)) < 100); // Adjust the range as needed
+                } while (Math.Abs(yPosition - (ClientSize.Height - 5)) < 100); 
 
                 leftToRightAsteroids.Add(new Asteroid(0, yPosition, speed, size));
                 rightToLeftAsteroids.Add(new Asteroid(ClientSize.Width, yPosition, -speed, size)); // Negative speed for right to left
@@ -109,10 +109,6 @@ namespace Space_Race
                 if (e.KeyCode == Keys.S) sKeyDown = true;
                 if (e.KeyCode == Keys.Up) upKeyDown = true;
                 if (e.KeyCode == Keys.Down) downKeyDown = true;
-                if (e.KeyCode == Keys.A) aKeyDown = true;
-                if (e.KeyCode == Keys.D) dKeyDown = true;
-                if (e.KeyCode == Keys.Right) rightKeyDown = true;
-                if (e.KeyCode == Keys.Left) leftKeyDown = true;
             }
         }
 
@@ -124,10 +120,6 @@ namespace Space_Race
             if (sKeyDown) player1.MoveDown();
             if (upKeyDown) player2.MoveUp();
             if (downKeyDown) player2.MoveDown();
-            if (aKeyDown) player1.MoveLeft();
-            if (dKeyDown) player1.MoveRight();
-            if (leftKeyDown) player2.MoveLeft();
-            if (rightKeyDown) player2.MoveRight();
 
             foreach (var asteroid in leftToRightAsteroids)
             {
@@ -158,12 +150,12 @@ namespace Space_Race
 
         private void DrawRocket(Graphics g, int x, int y, Brush bodyBrush)
         {
-            // Adjusted dimensions for smaller rocket
-            int bodyWidth = 15;
-            int bodyHeight = 25;
-            int noseHeight = 15;
-            int finHeight = 15;
-            int flameHeight = 20;
+            //dimensions for the rockets
+            int bodyWidth = 10;
+            int bodyHeight = 20;
+            int noseHeight = 10;
+            int finHeight = 10;
+            int flameHeight = 15;
 
             // Rocket body
             Rectangle body = new Rectangle(x, y, bodyWidth, bodyHeight);
@@ -234,9 +226,9 @@ namespace Space_Race
         public int X { get; set; }
         public int Y { get; set; }
         private int speed = 5;
-        private int minY; // Minimum Y-coordinate to prevent rocket from going above the white line
-        private int maxX; // Maximum X-coordinate to prevent rocket from going out of the right boundary
-        private int maxY; // Maximum Y-coordinate to prevent rocket from going out of the bottom boundary
+        private int minY; 
+        private int maxX; 
+        private int maxY;
 
         public Player(int x, int y, int minY, int maxX, int maxY)
         {
@@ -256,16 +248,6 @@ namespace Space_Race
         {
             if (Y < maxY)
                 Y += speed;
-        }
-        public void MoveLeft()
-        {
-            if (X > 0) // Check if rocket is within left boundary
-                X -= speed;
-        }
-        public void MoveRight()
-        {
-            if (X < maxX)
-                X += speed;
         }
     }
 
