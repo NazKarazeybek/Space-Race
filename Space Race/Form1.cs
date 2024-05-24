@@ -279,7 +279,7 @@ namespace Space_Race
             {
                 X = screenWidth;
             }
-        }
+        } 
 
     }
 }
