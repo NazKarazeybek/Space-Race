@@ -22,12 +22,73 @@ namespace Space_Race
         Player player2;
         List<Asteroid> leftToRightAsteroids;
         List<Asteroid> rightToLeftAsteroids;
-        Timer gameTimer;
         int player1Score = 0;
         int player2Score = 0;
-        bool gameRunning = true;
 
-        bool wKeyDown, sKeyDown, upKeyDown, downKeyDown, aKeyDown, dKeyDown, rightKeyDown, leftKeyDown;
+        int screenNum = 0; //title and ending screen
+
+        bool gameRunning = false;
+        bool wKeyDown, sKeyDown, upKeyDown, downKeyDown, aKeyDown, dKeyDown, rightKeyDown, leftKeyDown, enterPressed, escapePressed, spacePressed;
+
+        private void gameTimer_Tick(object sender, EventArgs e)
+        {
+            if (enterPressed && !gameRunning)
+            {
+                gameRunning = true;
+                screenNum = 2;
+                startingScreen.Visible = false;
+                enterPressed = false; // Reset the flag
+            }
+
+            if (!gameRunning) return;
+
+            if (wKeyDown) player1.MoveUp();
+            if (sKeyDown) player1.MoveDown();
+            if (upKeyDown) player2.MoveUp();
+            if (downKeyDown) player2.MoveDown();
+
+            foreach (var asteroid in leftToRightAsteroids)
+            {
+                asteroid.Move(ClientSize.Width, ClientSize.Height);
+                if (CheckCollision(player1, asteroid)) ResetPlayer(player1);
+                if (CheckCollision(player2, asteroid)) ResetPlayer(player2);
+            }
+
+            foreach (var asteroid in rightToLeftAsteroids)
+            {
+                asteroid.Move(ClientSize.Width, ClientSize.Height);
+                if (CheckCollision(player1, asteroid)) ResetPlayer(player1);
+                if (CheckCollision(player2, asteroid)) ResetPlayer(player2);
+            }
+
+            if (player1.Y <= 0) { player1Score++; ResetPlayer(player1); }
+            if (player2.Y <= 0) { player2Score++; ResetPlayer(player2); }
+
+            if (player1Score == 3 || player2Score == 3)
+            {
+                gameRunning = false;
+                gameTimer.Stop();
+
+                if (player1Score == 3)
+                {
+                    gameOverScreen.Visible = true;
+                    gameOverScreen.BackgroundImage = Properties.Resources.player1Win;
+                }
+                if (player2Score == 3)
+                {
+                    gameOverScreen.Visible = true;
+                    gameOverScreen.BackgroundImage = Properties.Resources.player2Win;
+                }
+            }
+
+            Invalidate();
+        }
+
+        private void backgroundTimer_Tick(object sender, EventArgs e)
+        {
+            ScreenChange();
+            Refresh();
+        }
 
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
@@ -39,6 +100,9 @@ namespace Space_Race
             if (e.KeyCode == Keys.D) dKeyDown = false;
             if (e.KeyCode == Keys.Right) rightKeyDown = false;
             if (e.KeyCode == Keys.Left) leftKeyDown = false;
+            if (e.KeyCode == Keys.Space) spacePressed = false;
+            if (e.KeyCode == Keys.Enter) enterPressed = false;
+            if (e.KeyCode == Keys.Escape) escapePressed = false;
         }
 
         public Form1()
@@ -54,9 +118,9 @@ namespace Space_Race
             Random rand = new Random();
             leftToRightAsteroids = new List<Asteroid>();
             rightToLeftAsteroids = new List<Asteroid>();
-            for (int i = 0; i < 15; i++) // asteroid number
+            for (int i = 0; i < 10; i++) // asteroid number
             {
-                int size = rand.Next(10, 30);
+                int size = rand.Next(7, 20);
                 int speed = rand.Next(2, 6);
 
                 // Ensure asteroids do not start near the rockets' initial positions
@@ -64,7 +128,7 @@ namespace Space_Race
                 do
                 {
                     yPosition = rand.Next(0, ClientSize.Height - size);
-                } while (Math.Abs(yPosition - (ClientSize.Height - 5)) < 100); 
+                } while (Math.Abs(yPosition - (ClientSize.Height - 5)) < 100);
 
                 leftToRightAsteroids.Add(new Asteroid(0, yPosition, speed, size));
                 rightToLeftAsteroids.Add(new Asteroid(ClientSize.Width, yPosition, -speed, size)); // Negative speed for right to left
@@ -110,6 +174,10 @@ namespace Space_Race
                 if (e.KeyCode == Keys.Up) upKeyDown = true;
                 if (e.KeyCode == Keys.Down) downKeyDown = true;
             }
+
+            if (e.KeyCode == Keys.Space) spacePressed = true;
+            if (e.KeyCode == Keys.Enter) enterPressed = true;
+            if (e.KeyCode == Keys.Escape) escapePressed = true;
         }
 
         private void GameLoop(object sender, EventArgs e)
@@ -142,20 +210,45 @@ namespace Space_Race
             {
                 gameRunning = false;
                 gameTimer.Stop();
-                MessageBox.Show(player1Score == 3 ? "Player 1 Wins!" : "Player 2 Wins!");
+
+                if (player1Score == 3)
+                {
+                    gameOverScreen.Visible = true;
+                    gameOverScreen.BackgroundImage = Properties.Resources.player1Win;
+                }
+                if (player2Score == 3)
+                {
+                    gameOverScreen.Visible = true;
+                    gameOverScreen.BackgroundImage = Properties.Resources.player2Win;
+                }
+
+                Invalidate();
+            }
+        }
+
+        public void ScreenChange()
+        {
+            if (escapePressed == true)
+            {
+                Application.Exit();
             }
 
-            Invalidate();
+            if (enterPressed == true && screenNum == 0)
+            {
+                screenNum = 2;
+                startingScreen.Visible = false;
+                gameRunning = true;
+            }
         }
 
         private void DrawRocket(Graphics g, int x, int y, Brush bodyBrush)
         {
             //dimensions for the rockets
-            int bodyWidth = 10;
-            int bodyHeight = 20;
-            int noseHeight = 10;
-            int finHeight = 10;
-            int flameHeight = 15;
+            int bodyWidth = 8;
+            int bodyHeight = 15;
+            int noseHeight = 8;
+            int finHeight = 8;
+            int flameHeight = 10;
 
             // Rocket body
             Rectangle body = new Rectangle(x, y, bodyWidth, bodyHeight);
@@ -226,8 +319,8 @@ namespace Space_Race
         public int X { get; set; }
         public int Y { get; set; }
         private int speed = 5;
-        private int minY; 
-        private int maxX; 
+        private int minY;
+        private int maxX;
         private int maxY;
 
         public Player(int x, int y, int minY, int maxX, int maxY)
@@ -279,7 +372,7 @@ namespace Space_Race
             {
                 X = screenWidth;
             }
-        } 
+        }
 
     }
 }
